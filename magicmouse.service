@@ -1,0 +1,23 @@
+[Unit]
+Description=Magic Mouse 2 driver with macOS-like scrolling and gestures
+After=systemd-udevd.service bluetooth.service
+
+[Service]
+Type=simple
+ExecStartPre=-/sbin/modprobe uinput
+ExecStart=@BINDIR@/magicmoused -c /etc/magicmouse/magicmouse.conf
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=2
+# Input latency must not depend on system load (builds, browser tabs...).
+# The daemon sleeps between reports and uses next to no CPU.
+CPUSchedulingPolicy=rr
+CPUSchedulingPriority=10
+
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target
