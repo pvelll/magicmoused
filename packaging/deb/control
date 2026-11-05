@@ -1,0 +1,13 @@
+Package: magicmoused
+Version: @VERSION@
+Architecture: @ARCH@
+Maintainer: Pavel Sushko <pvelll@users.noreply.github.com>
+Installed-Size: @SIZE@
+Depends: @DEPENDS@
+Section: utils
+Priority: optional
+Homepage: https://github.com/pvelll/MagicMoused
+Description: Apple Magic Mouse 2 driver with macOS-like scrolling and gestures
+ Smooth pixel-precise scrolling with inertia, GNOME workspace swipes that
+ follow the fingers, macOS-style secondary click, smart zoom and Mission
+ Control double taps for the Apple Magic Mouse 2 on Linux.

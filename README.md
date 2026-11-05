@@ -18,9 +18,21 @@ Developed and tested on Ubuntu 26.04 LTS (GNOME on Wayland, kernel 7.0). Other l
 
 - Apple Magic Mouse 2 (Lightning, `004c:0269`) or Magic Mouse USB-C (`004c:0323`), paired over Bluetooth. The original Magic Mouse (2009) is not supported.
 - Linux with `uinput` and `hidraw` (any distribution kernel has both).
-- A C compiler and `make`: `sudo apt install build-essential` on Ubuntu/Debian.
+- To build from source: a C compiler and `make` (`sudo apt install build-essential` on Ubuntu/Debian).
 
 ## Installation
+
+### From a release (Ubuntu, Debian)
+
+Download the `.deb` for your machine (`amd64` for most PCs, `arm64` for ARM boards) from the [Releases](https://github.com/pvelll/MagicMoused/releases) page and install it:
+
+```bash
+sudo apt install ./magicmoused_*_amd64.deb
+```
+
+The service is enabled and started right away. Updating works the same way with a newer `.deb`; your config is kept. Remove it with `sudo apt remove magicmoused`. If you installed from source before, run `sudo make uninstall` in that source tree first, so the old unit in `/etc/systemd/system` does not shadow the packaged one.
+
+### From source
 
 ```bash
 cd magicmoused
@@ -49,9 +61,9 @@ Make sure nothing else drives the mouse at the same time (an older driver, a ges
 pgrep -a magicmouse
 ```
 
-Only `/usr/local/bin/magicmoused` should be listed.
+Only `magicmoused` should be listed. `magicmoused -V` prints the installed version.
 
-### Updating
+### Updating a source install
 
 ```bash
 make clean && make && make test
@@ -177,10 +189,11 @@ sudo magicmouse-dump
 ## Uninstall
 
 ```bash
-sudo make uninstall
+sudo make uninstall          # source install
+sudo apt remove magicmoused  # package
 ```
 
-The kernel driver takes the mouse back at once. The config is left in `/etc/magicmouse/`.
+The kernel driver takes the mouse back at once. The config is left in `/etc/magicmouse/` (`sudo apt purge magicmoused` removes it too).
 
 ## Development
 
@@ -193,6 +206,19 @@ src/device.c    finding the mouse, multitouch mode, grabbing the kernel device
 src/main.c      main loop, reconnects, health statistics, reload
 src/dump.c      magicmouse-dump
 tests/          engine tests
+packaging/      .deb packaging (make deb)
+.github/        release workflow
 ```
 
 `report.c`, `engine.c` and `config.c` do not depend on Linux. `make test` runs 28 scenarios on synthetic HID reports: scrolling, acceleration, inertia and stopping it, clicks, taps, a double click that must not be a tap, swipes and flicks, palm rejection, dragging, mouse movement, Bluetooth bursts. One of them is a fuzz run of 20,000 random touches and clicks in four modes, checking that timers never spin and nothing stays pressed. The tests also build on macOS.
+
+### Releasing
+
+Releases are built by GitHub Actions ([`.github/workflows/release.yml`](.github/workflows/release.yml)). Tag a commit and push the tag:
+
+```bash
+git tag -a v1.0.0 -m "magicmoused 1.0.0"
+git push origin v1.0.0
+```
+
+The workflow runs the tests, builds `magicmoused_1.0.0_amd64.deb` and `magicmoused_1.0.0_arm64.deb` (cross-compiled) plus `SHA256SUMS`, and publishes a release with notes generated from the commits since the previous tag. A tag with a dash, such as `v1.1.0-rc1`, is published as a pre-release. To build a package locally on Debian/Ubuntu: `make deb`.

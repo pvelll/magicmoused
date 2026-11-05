@@ -25,6 +25,10 @@
 
 #define DEFAULT_CONFIG "/etc/magicmouse/magicmouse.conf"
 
+#ifndef MM_VERSION
+#define MM_VERSION "dev"
+#endif
+
 static volatile sig_atomic_t g_stop = 0;
 static volatile sig_atomic_t g_dump = 0;
 static volatile sig_atomic_t g_reload = 0;
@@ -59,6 +63,7 @@ static void usage(const char *argv0)
             "  -n        do not grab the kernel input device (debugging)\n"
             "  -p        print the effective configuration and exit\n"
             "  -v        verbose: log touches, clicks and gestures\n"
+            "  -V        print the version and exit\n"
             "  -h        this help\n",
             argv0);
 }
@@ -316,13 +321,14 @@ int main(int argc, char **argv)
     int verbose = 0;
     int opt;
 
-    while ((opt = getopt(argc, argv, "c:d:npvh")) != -1) {
+    while ((opt = getopt(argc, argv, "c:d:npvVh")) != -1) {
         switch (opt) {
         case 'c': config_path = optarg; explicit_config = 1; break;
         case 'd': device_path = optarg; break;
         case 'n': no_grab = 1; break;
         case 'p': print_only = 1; break;
         case 'v': verbose = 1; break;
+        case 'V': printf("magicmoused %s\n", MM_VERSION); return 0;
         case 'h': usage(argv[0]); return 0;
         default:  usage(argv[0]); return 2;
         }
@@ -370,7 +376,7 @@ int main(int argc, char **argv)
     mm_engine eng;
     mm_engine_init(&eng, &cfg, &out);
 
-    mm_log("magicmoused started (scroll: %s, grab: %s)",
+    mm_log("magicmoused " MM_VERSION " started (scroll: %s, grab: %s)",
            cfg.scroll_mode == MM_SCROLL_TOUCHPAD ? "touchpad" : "wheel",
            cfg.grab ? "yes" : "no");
 

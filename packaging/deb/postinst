@@ -1,0 +1,22 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = configure ] && [ -d /run/systemd/system ]; then
+    modprobe uinput 2>/dev/null || true
+
+    if [ -e /etc/systemd/system/magicmouse.service ]; then
+        echo "magicmoused: /etc/systemd/system/magicmouse.service from a source install" >&2
+        echo "magicmoused: overrides the packaged service; run 'sudo make uninstall' in the" >&2
+        echo "magicmoused: old source tree, then 'sudo systemctl enable --now magicmouse'." >&2
+    fi
+
+    systemctl daemon-reload || true
+
+    if [ -z "${2:-}" ]; then
+        systemctl enable --now magicmouse.service || true
+    else
+        systemctl try-restart magicmouse.service || true
+    fi
+fi
+
+exit 0

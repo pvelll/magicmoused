@@ -1,0 +1,56 @@
+name: Release
+
+# Pushing a tag such as v1.0.0 runs the tests, builds Debian/Ubuntu packages
+# for amd64 and arm64 and publishes them as a GitHub release.
+# A tag with a dash (v1.1.0-rc1) becomes a pre-release.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install the arm64 cross compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends gcc-aarch64-linux-gnu
+
+      - name: Run the tests
+        run: make test
+
+      - name: Build the packages
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          make deb VERSION="$version" DEB_ARCH=amd64
+          rm -f magicmoused magicmouse-dump
+          make deb VERSION="$version" DEB_ARCH=arm64 CC=aarch64-linux-gnu-gcc
+          cd dist
+          sha256sum *.deb > SHA256SUMS
+          ls -l
+
+      - name: Check the amd64 package
+        run: |
+          dpkg-deb --info dist/*_amd64.deb
+          dpkg-deb --contents dist/*_amd64.deb
+          dpkg-deb -x dist/*_amd64.deb "$RUNNER_TEMP/pkg"
+          "$RUNNER_TEMP/pkg/usr/bin/magicmoused" -V
+          "$RUNNER_TEMP/pkg/usr/bin/magicmoused" -p -c "$RUNNER_TEMP/pkg/etc/magicmouse/magicmouse.conf"
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          flags=""
+          case "$GITHUB_REF_NAME" in *-*) flags="--prerelease" ;; esac
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --title "magicmoused ${GITHUB_REF_NAME#v}" \
+            --generate-notes \
+            --verify-tag \
+            $flags
