@@ -2,8 +2,6 @@
 
 A userspace driver that makes the Apple Magic Mouse 2 on Linux behave like it does on macOS: smooth pixel-precise scrolling with inertia, workspace swipes that follow your fingers, macOS-style secondary click, smart zoom and Mission Control taps.
 
-[Русская версия](README.ru.md)
-
 | On the mouse                              | Result                                                                    | macOS equivalent                   |
 |-------------------------------------------|---------------------------------------------------------------------------|------------------------------------|
 | One finger up/down                        | Smooth scrolling with inertia; touching the mouse stops it                | Scroll                             |
